@@ -1,0 +1,149 @@
+@startuml
+actor act
+
+== 申请开通白条 ==
+act -> web: 申请开通白条
+web -> scf: 1、请求申请开通白条服务
+activate scf
+scf -> 百凌白条: 1.1联合登陆地址查询loginUrlQuery，jumpFrom=02:开通入口（百凌）
+activate 百凌白条
+scf <-- 百凌白条: 返回联合登陆地址loginUrl
+deactivate 百凌白条
+scf -> scf: 1.2联合登陆信息记录
+web <-- scf: 返回联合登陆地址loginUrl
+deactivate scf
+act <-- web: 跳转百凌白条h5页面
+
+== 异步通知审核结果 ==
+百凌白条 -> scf: 2、异步通知审核结果（cp）
+activate scf
+scf -> scf: 2.1白条审核结果信息记录
+scf --> 百凌白条: 返回百凌白条异步通知处理成功
+deactivate scf
+
+== 选择白条支付 ==
+act -> web: 选择白条支付
+web -> scf: 3、请求白条支付服务
+activate scf
+scf -> 百凌白条: 3.1联合登陆地址查询loginUrlQuery，jumpFrom=01:支付入口（百凌）
+activate 百凌白条
+scf <-- 百凌白条: 返回联合登陆地址payUrl
+deactivate 百凌白条
+scf -> scf: 3.2联合登陆信息记录
+web <-- scf: 返回联合登陆地址payUrl
+deactivate scf
+act <-- web: 跳转百凌白条h5页面
+
+== 异步通知支付结果 ==
+百凌白条 -> scf: 4、异步通知支付结果（cp）
+activate scf
+scf -> scf: 4.1白条支付结果信息记录，翻转订单状态，记录流水，计算待入账等
+scf --> 百凌白条: 返回百凌白条异步通知处理成功
+deactivate scf
+
+== 修理厂确认到货，白条放款 ==
+act -> web: 修理厂在平台操作确认到货
+web -> scf: 5、请求确认到货服务
+activate scf
+scf -> 百凌白条: 5.1请求白条打款申请接口borrow/payoutApply，申请放款（百凌）
+activate 百凌白条
+百凌白条 -> 资产方: 请求资方放款到见证
+资产方 -> 行方见证: 进行打款：平安银行电子商务交易资金待清算专户(3137)
+资产方 <-- 行方见证: 行方返回打款成功
+百凌白条 <-- 资产方: 资产方返回打款成功
+scf <-- 百凌白条: 返回订单确认受理成功
+deactivate 百凌白条
+scf -> scf: 5.2放款申请信息记录，流水记录等
+web <-- scf: 返回请求确认到货成功
+deactivate scf
+act <-- web: 提示确认到货成功
+
+== 异步通知放款结果 ==
+百凌白条 -> scf: 6、异步通知放款成功（cp）
+activate scf
+scf -> 行方见证: 6.1请求见证登记挂帐接口【6139】，资金调账到配件商账户
+activate 行方见证
+行方见证 --> scf: 返回调账成功
+deactivate 行方见证
+scf -> 行方见证: 6.2请求见证会员间交易【6034】的7分支，扣除手续费（4.5%）到手续费账户
+activate 行方见证
+行方见证 --> scf: 返回手续费扣收成功
+deactivate 行方见证
+scf -> scf: 6.3白条放款结果信息记录，翻转订单状态，记录流水，计算待入账等
+scf --> 百凌白条: 返回百凌白条异步通知处理成功
+deactivate scf
+
+== 售中退款 ==
+act -> web: 配件商在平台操作售中同意退款
+web -> scf: 7、请求售中退款服务
+activate scf
+scf -> 百凌白条: 7.1请求百凌退款申请接口refund/apply（百凌）
+activate 百凌白条
+百凌白条 --> scf: 百凌白条返回退款"失败"
+deactivate 百凌白条
+scf -> 百凌白条: 7.2失败后多次请求百凌退款申请接口refund/apply
+activate 百凌白条
+百凌白条 --> scf: 百凌白条返回退款"成功"
+deactivate 百凌白条
+scf --> web: 返回售中退款成功
+deactivate scf
+web --> act: 操作售中退款成功
+
+== 售后退款 ==
+act -> web: 配件商在平台操作售后同意退款
+web -> scf: 8、请求退款服务
+scf -> 百凌白条: 8.1请求百凌borrow/detailQuery接口查询是否已结清（百凌）
+activate 百凌白条
+百凌白条 --> scf: 已结清
+deactivate 百凌白条
+activate scf
+scf -> 行方见证: 8.2请求见证【6034】的6分支退回货款
+activate 行方见证
+行方见证 --> scf: 见证返回交易成功
+deactivate 行方见证
+scf -> scf: 8.3退款信息记录，翻转订单状态，记录流水等
+scf --> web: 退款成功
+deactivate scf
+web --> act: 同意退货操作完成
+
+== 用户访问百凌金科页面 ==
+act -> 百凌白条: 用户进入百凌金科页面
+百凌白条 -> scf: 9、联合登陆验证接口（cp）
+activate scf
+scf --> 百凌白条: 返回用户认证信息
+deactivate scf
+百凌白条 --> act: 百凌金科页面正常渲染
+
+== 用户开通状态调取及额度展示 ==
+act -> web: 访问平台白条入口
+web -> scf: 10、访问白条开通状态查询服务
+activate scf
+scf -> 百凌白条: 10.1请求用户开通状态查询接口auth/query（百凌）
+activate 百凌白条
+百凌白条 --> scf: 返回用户开通状态及授信额度
+deactivate 百凌白条
+scf -> scf: 10.2用户开通状态及授信额度信息记录
+scf -> web: 返回用户开通状态及授信额度
+deactivate scf
+web --> act: 页面渲染
+
+== 还款结果通知 ==
+act -> 百凌白条: 还款操作
+activate 百凌白条
+百凌白条 -> 百凌白条: 操作进行还款
+百凌白条 -> scf: 11、还款结果通知（cp）
+activate scf
+scf -> scf: 还款信息记录
+scf --> 百凌白条: 还款结果通知成功
+deactivate scf
+百凌白条 --> act: 还款操作成功
+deactivate 百凌白条
+
+== 同步订单信息 ==
+百凌白条 -> scf: 12、定时获取用户及订单信息（cp）
+activate scf
+scf --> 百凌白条: 返回用户及订单脱敏信息
+deactivate scf
+
+
+@enduml

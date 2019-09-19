@@ -1,0 +1,8 @@
+@startuml
+service_bank -> service_bank: 定时任务启动
+service_bank -> 见证宝: 查询"手续费账户"余额
+见证宝 --> service_bank: 返回账户余额
+service_bank -> 见证宝: 根据存量水位定时自动提现，调用【6033】接口免密提现
+见证宝 --> service_bank: 提现成功
+service_bank -> service_bank: 记录流水信息，任务结束
+@enduml

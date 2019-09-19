@@ -1,0 +1,62 @@
+@startuml
+== 1、购物车结算 ==
+actor buyer
+buyer -> web: 购物车结算
+web -> trading: 生成订单
+activate trading
+trading --> web: 订单生成成功
+deactivate trading
+web --> buyer: 下单成功，请继续支付流程
+buyer -> web: 选择支付方式
+web -> payment: 支付方式确认
+activate payment
+payment -> payment: 支付后移验证（防止重复支付）
+payment -> trading: 更新订单支付方式、"<font color=red>佣金费率</font>"等
+trading -> trading: <font color=red>根据费率计算佣金并存储</font>
+trading --> payment: 更新成功
+payment --> web: 支付方式确认成功
+deactivate payment
+web --> buyer: 支付方式选定，请继续支付流程
+
+== 2、支付流程，略... ==
+== 3、配件商发货，略... ==
+
+== 4、修理厂操作确认到货 ==
+buyer -> web: 点击【确认到货】按钮
+web -> payment: 确认到货
+activate payment
+payment -> 见证宝: 请求资金划拨，货款结算给配件商
+activate 见证宝
+见证宝 --> payment: 资金划拨成功
+deactivate 见证宝
+payment -> iam: <font color=red>请求试点区域查询接口</font>
+activate iam
+iam --> payment: 返回试点区域
+deactivate iam
+payment -> 见证宝: <font color=red>在试点区域内，请求扣除佣金，佣金扣收到平台账户</font>
+activate 见证宝
+见证宝 --> payment: 佣金扣收成功
+deactivate 见证宝
+payment -> payment: payment记录资金划拨信息
+payment --> web: 确认到货成功
+deactivate payment
+web --> buyer: 提示操作成功
+
+== 5、售后退款 ==
+actor vendor
+vendor -> web: 操作【同意退款】按钮
+web -> payment: 配件商同意退款
+activate payment
+payment -> 见证宝: <font color=red>退还佣金</font>
+activate 见证宝
+见证宝 --> payment: 佣金退还成功
+deactivate 见证宝
+payment -> 见证宝: 申请退货款
+activate 见证宝
+见证宝 --> payment: 货款退还成功
+deactivate 见证宝
+payment --> web: 退款成功
+deactivate payment
+web --> vendor: 操作成功
+
+@enduml

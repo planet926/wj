@@ -1,0 +1,58 @@
+@startuml
+web -> iam: 请求弹窗接口
+activate iam
+iam -> iam: <font color=red>是否需要补充资料</font>
+iam --> web: 需要则提示补充资料
+deactivate iam
+web -> trading: 请求补充资料接口
+activate trading
+trading --> web: 资料补充成功
+deactivate trading
+
+web -> iam: 请求弹窗接口
+activate iam
+iam -> iam: <font color=red>是否审核</font>
+iam --> web: 需要则提示审核
+deactivate iam
+
+actor 运营
+运营 -> 后管: 运营人工审核
+activate 后管
+后管 -> trading: 更新审核信息
+trading --> 后管: 更新成功
+后管 -> payment: 更新收费情况（质保金、服务费、<font color=red>会员费</font>）
+payment --> 后管: 更新成功
+后管 -> 运营: 审核完成
+deactivate 后管
+
+web -> iam: 请求弹窗接口
+iam -> payment: 查询缴费情况
+activate iam
+activate payment
+payment -> iam: 返回缴费情况
+deactivate payment
+iam -> iam: <font color=red>是否需要缴费</font>
+iam --> web: 需要则提示缴费
+deactivate iam
+web -> payment: 请求线上缴费接口（质保金、技术服务费、<font color=red>会员费</font>）
+activate payment
+payment -> 平安银行: B2B对公网关缴费及异步通知，略...
+平安银行 -> payment: 异步通知缴费成功，后续处理，略...
+payment --> web: 线上缴费成功
+deactivate payment
+
+web -> iam: 请求弹窗接口
+activate iam
+iam -> trading: 查询合同签署情况
+activate trading
+trading --> iam: 返回合同签署情况
+deactivate trading
+iam -> iam: <font color=red>是否签署合同</font>
+iam --> web: 需要则提示签署合同
+deactivate iam
+web -> trading: 请求签署合同接口
+activate trading
+trading --> web: 合同签署成功
+deactivate trading
+
+@enduml

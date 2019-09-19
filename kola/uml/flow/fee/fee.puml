@@ -1,0 +1,16 @@
+@startuml
+start
+if (未注册) then (yes)
+  :注册;
+elseif (未补充资料) then (yes)
+  :补充资料;
+elseif (未审核) then (yes)
+  :运营审核;
+elseif (未缴费) then (yes)
+  :线上缴费;
+elseif (未签合同) then (yes)
+  :电子合同签署;
+else (nothing)
+endif
+stop
+@enduml
