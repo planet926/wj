@@ -1,0 +1,82 @@
+@startuml
+== 1、交易过程中产生对账单 ==
+actor buyer
+buyer -> web: 确认到货（1、全部收获 2、部分收获）
+web -> trading: 请求确认到货服务
+activate trading
+trading -> trading : 订单状态翻转
+trading -> payment: <font color=red>生成订单对账单verify_bill</font>
+activate payment
+payment --> trading: <font color=red>订单对账单生成成功（对账单金额为订单总金额）</font>
+deactivate payment
+trading --> web: 确认到货成功
+deactivate trading
+web --> buyer: 提示成功
+
+buyer -> web: 申请售后（1、售中退 2、售后退）
+web -> trading : 请求售后服务
+activate trading
+trading --> web: 售后成功
+deactivate trading
+web --> buyer: 售后申请已受理
+
+actor vendor
+vendor -> web: 同意退款
+web -> trading: 请求售后服务
+activate trading
+trading -> trading: 订单状态翻转
+trading -> payment: <font color="red">生成退款对账单verify_bill</font>
+activate payment
+payment --> trading: <font color="red">退款对账单生成成功（对账单金额为退款金额）</font>
+deactivate payment
+trading --> web: 同意退款成功
+deactivate trading
+web --> vendor: 提示成功
+
+== 2、后管生成结算单 ==
+actor 运营
+运营 -> admin : <font color="red">查询对账单</font>
+activate admin
+admin -> payment : <font color="red">查询对账单</font>
+activate payment
+payment --> admin : <font color="red">返回对账单列表</font>
+deactivate payment
+admin --> 运营: <font color="red">页面渲染展示</font>
+deactivate admin
+
+运营 -> admin: <font color="red">后管生成结算单</font>
+activate admin
+admin ->payment: <font color="red">生成结算单</font>
+activate payment
+payment --> admin: <font color="red">生成成功</font>
+deactivate payment
+admin --> 运营 : <font color="red">提示成功</font>
+deactivate admin
+
+
+== 3、对于运营已经生成单结算单，配件商查询及支付 ==
+vendor -> web: <font color="red">查询结算单</font>
+web -> payment: <font color="red">请求结算单查询服务</font>
+activate payment
+payment --> web: <font color="red">返回结算单列表</font>
+deactivate payment
+web --> vendor: <font color="red">页面渲染展示</font>
+
+vendor -> web: <font color="red">支付佣金</font>
+web -> payment: <font color="red">请求佣金支付服务（1、微信支付 2、对公支付）</font>
+activate payment
+payment -> 平安银行: <font color="red">支付对接</font>
+activate 平安银行
+平安银行 --> payment : <font color="red">支付受理成功</font>
+deactivate 平安银行
+payment -> payment : <font color="red">内部数据记录</font>
+payment --> web: <font color="red">支付成功</font>
+deactivate payment
+
+平安银行 -> payment: <font color="red">支付结果通知</font>
+activate payment
+payment -> payment : <font color="red">内部数据记录及状态更新</font>
+payment --> 平安银行: <font color="red">回调受理成功</font>
+deactivate payment
+
+@enduml

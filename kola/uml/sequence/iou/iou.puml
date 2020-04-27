@@ -34,6 +34,12 @@ web <-- scf: 返回联合登陆地址payUrl
 deactivate scf
 act <-- web: 跳转百凌白条h5页面
 
+百凌白条 -> scf: 3.3订单详情获取接口（cp）
+activate scf
+scf --> 百凌白条: 返回订单详情
+deactivate scf
+
+
 == 异步通知支付结果 ==
 百凌白条 -> scf: 4、异步通知支付结果（cp）
 activate scf

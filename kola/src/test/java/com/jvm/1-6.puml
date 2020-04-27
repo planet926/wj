@@ -1,0 +1,37 @@
+@startuml
+
+jvm -> 方法区:加载MainTest.class类到内存
+
+control 字节码执行引擎
+方法区 -> 字节码执行引擎: 执行字节码指令
+字节码执行引擎 -> 程序计数器:记录指令位置
+程序计数器 --> 字节码执行引擎:success
+
+entity 线程
+字节码执行引擎 -> 线程: 执行
+
+线程 -> Java虚拟机栈: main()栈帧压入，局部变量cmet
+Java虚拟机栈 -> Java堆内存:局部变量指向内存对象
+
+线程 -> jvm: 加载ConcurrentModificationExceptionTest.class（类加载、验证、准备）
+jvm -> 方法区: 加载ConcurrentModificationExceptionTest.class类到内存
+方法区 -> 字节码执行引擎: 执行字节码指令
+字节码执行引擎 -> 程序计数器:记录指令位置
+程序计数器 --> 字节码执行引擎:success
+
+字节码执行引擎 -> 线程: 继续执行
+
+线程 -> Java虚拟机栈: test1()栈帧压入，局部变量arrayList
+Java虚拟机栈 -> Java堆内存:局部变量指向内存对象
+线程 -> Java虚拟机栈: collectionInit()栈帧压入，局部变量arrayList
+Java虚拟机栈 -> Java堆内存:局部变量指向内存对象
+
+线程 <-- Java虚拟机栈: collectionInit()执行完毕，出栈
+线程 <-- Java虚拟机栈: test1()执行完毕，出栈
+线程 <-- Java虚拟机栈: main()执行完毕，出栈
+
+entity jvm垃圾回收线程
+jvm垃圾回收线程 -> Java堆内存: 回收arrayList实例对象
+jvm垃圾回收线程 -> Java堆内存: 回收cmet实例对象
+
+@enduml

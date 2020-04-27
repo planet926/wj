@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$USER_HOME$/Desktop/Bella/pro/demo/demo.iml" filepath="$USER_HOME$/Desktop/Bella/pro/demo/demo.iml" />
       <module fileurl="file://$PROJECT_DIR$/kola/kola.iml" filepath="$PROJECT_DIR$/kola/kola.iml" />
       <module fileurl="file://$PROJECT_DIR$/wj.iml" filepath="$PROJECT_DIR$/wj.iml" />
     </modules>
